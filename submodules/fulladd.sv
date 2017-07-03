@@ -4,4 +4,4 @@ module fulladd (Cin, x, y, s, Cout);
 
  assign s = x ˆ y ˆ Cin;
  assign Cout = (x & y) | (x & Cin) | (y & Cin);
- endmodule
+endmodule

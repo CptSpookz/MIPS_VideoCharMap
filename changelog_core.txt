@@ -1,0 +1,18 @@
+- added irq/iack signals
+	- TODO: give these two use
+- added epc register
+	- added epcwrite signal
+	- added pc output to epc input
+	- added exception handler address to pcsrc
+- added cause register
+	- added cause mux and cause codes
+	- added intcause and causewrite signals
+- added status register
+	- TODO: give status masks to this one
+- added overflow signal
+	- added overflow check to the alu
+	- TODO: make overflow signal call exceptions
+- syscalls
+	- TODO: implement syscalls
+- FSM
+	- TODO: make new states in the FSM for overflow,undefined instruction, mfc0 and syscall

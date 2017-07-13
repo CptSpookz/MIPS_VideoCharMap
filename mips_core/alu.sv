@@ -1,7 +1,7 @@
 module alu(input  logic [31:0] a, b,
            input  logic [2:0]  f,
            output logic [31:0] y,
-           output logic        zero);
+           output logic        zero, overflow);
            
   logic [31:0] bb, b2, add_res, and_res, or_res, slt_res;
   
@@ -19,6 +19,11 @@ module alu(input  logic [31:0] a, b,
       2'b10: y = add_res;
       2'b11: y = slt_res;
     endcase
-    
+   
+	case (f[1:0])
+	  2'b10: overflow = ~(a[1] ^ b2[1]) & (y[1] ^ a[1]);
+	endcase
+	
   assign zero = (y == 32'b0);
+  
 endmodule

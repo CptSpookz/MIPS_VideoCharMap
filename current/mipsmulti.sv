@@ -5,82 +5,79 @@
 // Multicycle MIPS processor
 //------------------------------------------------
 
-module mips(input  logic        clk, reset, irq,
+module mips(input  logic        clk, reset,
             output logic [31:0] adr, writedata,
-            output logic        memwrite, iack,
-            input  logic [31:0] readdata);
+            output logic        memwrite,
+            input  logic [31:0] readdata,
+            output  logic charprint);
 
-  logic        zero, overflow, pcen, epcwrite, causewrite, intcause, irwrite, regwrite,
-               alusrca, iord, regdst, jal;
-  logic [1:0]  memtoreg;
-  logic [2:0]  pcsrc, alusrcb, alucontrol;
+  logic        zero, pcen, irwrite, regwrite,
+               alusrca, iord, memtoreg, regdst, jal;
+  logic [1:0]  pcsrc;
+  logic [2:0]  alusrcb, alucontrol;
   logic [5:0]  op, funct;
 
-  controller c(clk, reset, op, funct, zero, overflow,
-               pcen, epcwrite, causewrite, intcause, memwrite, irwrite, regwrite,
+  controller c(clk, reset, op, funct, zero,
+               pcen, memwrite, irwrite, regwrite,
                alusrca, iord, memtoreg, regdst, jal,
-               pcsrc, alusrcb, alucontrol);
+               pcsrc, alusrcb, alucontrol, charprint);
   datapath dp(clk, reset,
-              pcen, epcwrite, causewrite, intcause, irwrite, regwrite,
+              pcen, irwrite, regwrite,
               alusrca, iord, memtoreg, regdst, jal,
               pcsrc, alusrcb, alucontrol,
-              op, funct, zero, overflow,
+              op, funct, zero,
               adr, writedata, readdata);
 endmodule
 
 module controller(input  logic       clk, reset,
                   input  logic [5:0] op, funct,
-                  input  logic       zero, overflow,
-                  output logic       pcen, epcwrite, causewrite, intcause,
-				  output logic		 memwrite, irwrite, regwrite,
-                  output logic       alusrca, iord,
-				  output logic [1:0] memtoreg,
-				  output logic		 regdst, jal,
-                  output logic [2:0] pcsrc,
-                  output logic [2:0] alusrcb, alucontrol);
+                  input  logic       zero,
+                  output logic       pcen, memwrite, irwrite, regwrite,
+                  output logic       alusrca, iord, memtoreg, regdst, jal,
+                  output logic [1:0] pcsrc,
+                  output logic [2:0] alusrcb, alucontrol,
+                  output logic charprint);
 
   logic [1:0] aluop;
   logic       branch, pcwrite, bne;
 
   // Main Decoder and ALU Decoder subunits.
   maindec md(clk, reset, op, funct,
-             pcwrite, epcwrite, causewrite, intcause, memwrite, irwrite, regwrite,
+             pcwrite, memwrite, irwrite, regwrite,
              alusrca, branch, iord, memtoreg, regdst,
-             alusrcb, pcsrc, aluop, bne, jal);
+             alusrcb, pcsrc, aluop, bne, jal, charprint);
   aludec  ad(funct, aluop, alucontrol);
 
   assign pcen = pcwrite | branch & (zero ^ bne);
-
 
 endmodule
 
 module maindec(input  logic       clk, reset,
                input  logic [5:0] op, funct,
-               output logic       pcwrite, epcwrite, causewrite, intcause,
-			   output logic		  memwrite, irwrite, regwrite,
-               output logic       alusrca, branch, iord,
-			   output logic [1:0] memtoreg,
-			   output logic 	  regdst,
-               output logic [2:0] alusrcb, pcsrc,
-			   output logic	[1:0] aluop,
-               output logic       bne, jal);
+               output logic       pcwrite, memwrite, irwrite, regwrite,
+               output logic       alusrca, branch, iord, memtoreg, regdst,
+               output logic [2:0] alusrcb,
+               output logic [1:0] pcsrc, aluop,
+               output logic       bne, jal,
+               output logic charprint);
 
-  parameter   FETCH   = 4'b0000; 	// State 0
-  parameter   DECODE  = 4'b0001; 	// State 1
-  parameter   MEMADR  = 4'b0010;	// State 2
-  parameter   MEMRD   = 4'b0011;	// State 3
-  parameter   MEMWB   = 4'b0100;	// State 4
-  parameter   MEMWR   = 4'b0101;	// State 5
-  parameter   RTYPEEX = 4'b0110;	// State 6
-  parameter   RTYPEWB = 4'b0111;	// State 7
-  parameter   BEQEX   = 4'b1000;	// State 8
-  parameter   ADDIEX  = 4'b1001;	// State 9
-  parameter   IWB     = 4'b1010;	// state 10
-  parameter   JEX     = 4'b1011;	// State 11
-  parameter   BNEEX   = 4'b1100;	// State 12
-  parameter   ORIEX   = 4'b1101;	// State 13
-  parameter   JALEX   = 4'b1110;	// State 14
-  parameter   JREX    = 4'b1111;	// State 15
+  parameter   FETCH   = 5'b00000; // State 0
+  parameter   DECODE  = 5'b00001; // State 1
+  parameter   MEMADR  = 5'b00010;	// State 2
+  parameter   MEMRD   = 5'b00011;	// State 3
+  parameter   MEMWB   = 5'b00100;	// State 4
+  parameter   MEMWR   = 5'b00101;	// State 5
+  parameter   RTYPEEX = 5'b00110;	// State 6
+  parameter   RTYPEWB = 5'b00111;	// State 7
+  parameter   BEQEX   = 5'b01000;	// State 8
+  parameter   ADDIEX  = 5'b01001;	// State 9
+  parameter   IWB     = 5'b01010;	// state 10
+  parameter   JEX     = 5'b01011;	// State 11
+  parameter   BNEEX   = 5'b01100;	// State 12
+  parameter   ORIEX   = 5'b01101;	// State 13
+  parameter   JALEX   = 5'b01110;	// State 14
+  parameter   JREX    = 5'b01111;	// State 15
+  parameter   CHAREX  = 5'b10000;	// State 16
 
   parameter   LW      = 6'b100011;	// Opcode for lw
   parameter   SW      = 6'b101011;	// Opcode for sw
@@ -91,11 +88,12 @@ module maindec(input  logic       clk, reset,
   parameter   ORI     = 6'b001101;	// Opcode for ori
   parameter   J       = 6'b000010;	// Opcode for j
   parameter   JAL     = 6'b000011;	// Opcode for jal
+  parameter   CHARP   = 6'b101010;  // Opcode for charprint
 
   parameter   JR      = 6'b001000; // Funct for jr
 
-  logic [3:0]  state, nextstate;
-  logic [22:0] controls;
+  logic [4:0]  state, nextstate;
+  logic [19:0] controls;
 
   // state register
   always_ff @(posedge clk or posedge reset)
@@ -119,12 +117,13 @@ module maindec(input  logic       clk, reset,
                  ORI:     nextstate <= ORIEX;
                  J:       nextstate <= JEX;
                  JAL:     nextstate <= JALEX;
-                 default: nextstate <= 4'bx; // should never happen
+                 CHARP:   nextstate <= CHAREX;
+                 default: nextstate <= 6'bx; // should never happen
                endcase
       MEMADR: case(op)
                  LW:      nextstate <= MEMRD;
                  SW:      nextstate <= MEMWR;
-                 default: nextstate <= 4'bx;
+                 default: nextstate <= 6'bx;
                endcase
       MEMRD:   nextstate <= MEMWB;
       MEMWB:   nextstate <= FETCH;
@@ -139,39 +138,36 @@ module maindec(input  logic       clk, reset,
       JEX:     nextstate <= FETCH;
       JALEX:   nextstate <= FETCH;
       JREX:    nextstate <= FETCH;
-      default: nextstate <= 4'bx; // should never happen
+      CHAREX:  nextstate <= FETCH;
+      default: nextstate <= 5'bx; // should never happen
     endcase
 
   // output logic
   assign {jal, bne, pcwrite,
-		  epcwrite, causewrite, intcause,
           memwrite, irwrite, regwrite,
           alusrca, branch, iord, memtoreg, regdst,
-          alusrcb, pcsrc, aluop} = controls;
+          alusrcb, pcsrc, aluop, charprint} = controls;
 
   always_comb
     case(state)
-      FETCH:   controls <= 23'b001_000_010_000000_001_000_00;
-      DECODE:  controls <= 23'b000_000_000_000000_011_000_00;
-      MEMADR:  controls <= 23'b000_000_000_100000_010_000_00;
-      MEMRD:   controls <= 23'b000_000_000_001000_000_000_00;
-      MEMWB:   controls <= 23'b000_000_001_000010_000_000_00;
-      MEMWR:   controls <= 23'b000_000_100_001000_000_000_00;
-      RTYPEEX: controls <= 23'b000_000_000_100000_000_000_10;
-      RTYPEWB: controls <= 23'b000_000_001_000001_000_000_00;
-      BEQEX:   controls <= 23'b000_000_000_110000_000_001_01;
-      BNEEX:   controls <= 23'b010_000_000_110000_000_001_01;
-      ADDIEX:  controls <= 23'b000_000_000_100000_010_000_00;
-      ORIEX:   controls <= 23'b000_000_000_100000_100_000_11;
-      IWB:     controls <= 23'b000_000_001_000000_000_000_00;
-      JEX:     controls <= 23'b001_000_000_000000_000_010_00;
-      JALEX:   controls <= 23'b101_000_001_000000_000_010_00;
-      JREX:    controls <= 23'b001_000_000_000000_000_011_00;
-	    UNDEF:   controls <= 23'b001_111_000_000000_000_111_00;
-	    OVERFLOW:controls <= 23'b001_110_000_000000_000_111_00;
-	    MFC0:    controls <= 23'b000_000_001_000100_000_000_00;
-	    SYSCALL: controls <= 23'b;
-      default: controls <= 23'bxxx_xxx_xxx_xxxxxx_xxx_xxx_xx; // should never happen
+      FETCH:   controls <= 19'b001_010_00000_001_00_000;
+      DECODE:  controls <= 19'b000_000_00000_011_00_000;
+      MEMADR:  controls <= 19'b000_000_10000_010_00_000;
+      MEMRD:   controls <= 19'b000_000_00100_000_00_000;
+      MEMWB:   controls <= 19'b000_001_00010_000_00_000;
+      MEMWR:   controls <= 19'b000_100_00100_000_00_000;
+      RTYPEEX: controls <= 19'b000_000_10000_000_00_100;
+      RTYPEWB: controls <= 19'b000_001_00001_000_00_000;
+      BEQEX:   controls <= 19'b000_000_11000_000_01_010;
+      BNEEX:   controls <= 19'b010_000_11000_000_01_010;
+      ADDIEX:  controls <= 19'b000_000_10000_010_00_000;
+      ORIEX:   controls <= 19'b000_000_10000_100_00_110;
+      IWB:     controls <= 19'b000_001_00000_000_00_000;
+      JEX:     controls <= 19'b001_000_00000_000_10_000;
+      JALEX:   controls <= 19'b101_001_00000_000_10_000;
+      JREX:    controls <= 19'b001_000_00000_000_11_000;
+      CHAREX:  controls <= 19'b000_000_00000_000_00_001;
+      default: controls <= 19'bxxx_xxx_xxxxx_xxx_xx_xxx; // should never happen
     endcase
 endmodule
 
@@ -197,21 +193,19 @@ module aludec(input  logic [5:0] funct,
 endmodule
 
 module datapath(input  logic        clk, reset,
-                input  logic        pcen, epcwrite, causewrite, intcause,
-				        input  logic		    irwrite, regwrite, alusrca, iord,
-				        input  logic [1:0]  memtoreg,
-				        input  logic        regdst, jal,
+                input  logic        pcen, irwrite, regwrite,
+                input  logic        alusrca, iord, memtoreg, regdst, jal,
                 input  logic [1:0]  pcsrc,
                 input  logic [2:0]  alusrcb, alucontrol,
                 output logic [5:0]  op, funct,
-                output logic        zero, overflow,
+                output logic        zero,
                 output logic [31:0] adr, writedata,
                 input  logic [31:0] readdata);
 
   // Below are the internal signals of the datapath module.
 
   logic [4:0]  writereg, writereg0;
-  logic [31:0] pcnext, pc, epc, cause, status;
+  logic [31:0] pcnext, pc;
   logic [31:0] instr, data, srca, srcb;
   logic [31:0] a;
   logic [31:0] aluresult, aluout;
@@ -226,14 +220,11 @@ module datapath(input  logic        clk, reset,
 
   flopenr #(32) pcreg(clk, reset, pcen, pcnext, pc);
   mux2    #(32) adrmux(pc, aluout, iord, adr);
-  flopenr #(32) epcreg(clk, reset, epcwrite, pc, epc);
-  mux2	  #(32) causemux(8'h30, 8'h28, intcause, causecode);
-  flopenr #(32) causereg(clk, reset, causewrite, causecode, cause);
   flopenr #(32) instrreg(clk, reset, irwrite, readdata, instr);
   flopr   #(32) datareg(clk, reset, readdata, data);
   mux2    #(5)  regdstmux(instr[20:16], instr[15:11], regdst, writereg0);
   mux2    #(5)  jalmux(writereg0, 5'b11111, jal, writereg);
-  mux3    #(32) wdmux(aluout, data, cause, memtoreg, wd30);
+  mux2    #(32) wdmux(aluout, data, memtoreg, wd30);
   mux2    #(32) jalpcmux(wd30, pc, jal, wd3);
   regfile       rf(clk, regwrite, instr[25:21], instr[20:16], writereg, wd3, rd1, rd2);
   signext       se(instr[15:0], signimm);
@@ -243,9 +234,9 @@ module datapath(input  logic        clk, reset,
   flopr   #(32) breg(clk, reset, rd2, writedata);
   mux2    #(32) srcamux(pc, a, alusrca, srca);
   mux5    #(32) srcbmux(writedata, 32'b100, signimm, signimmsh, zeroimm, alusrcb, srcb);
-  alu           alu(srca, srcb, alucontrol, aluresult, zero, overflow);
+  alu           alu(srca, srcb, alucontrol, aluresult, zero);
   flopr   #(32) alureg(clk, reset, aluresult, aluout);
-  mux5    #(32) pcmux(aluresult, aluout, {pc[31:28], instr[25:0], 2'b00}, rd1, 32'b100, pcsrc, pcnext);
+  mux4    #(32) pcmux(aluresult, aluout, {pc[31:28], instr[25:0], 2'b00}, rd1, pcsrc, pcnext);
 
 endmodule
 

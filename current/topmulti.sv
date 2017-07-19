@@ -20,7 +20,7 @@ module topmulti (
 	logic CLOCK_25;
 
 	logic [31:0] writedata, adr, readdata;
-	wire [63:0] vdata;
+	logic [63:0] vdata;
 	logic        memwrite;
 	logic charprint;
 
@@ -33,7 +33,7 @@ module topmulti (
 	vga640x480 vd(
 	.clr(reset),
 	.dclk(CLOCK_25),
-  .vdata(vdata),
+	.vdata(vdata),
 	.hsync(VGA_HS),
 	.vsync(VGA_VS),
 	.red(VGA_R),

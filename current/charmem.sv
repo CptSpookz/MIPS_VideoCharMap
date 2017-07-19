@@ -4,20 +4,20 @@
 //------------------------------------------------
 
 module charmem( input  logic        clk,
-                input logic charprint,
-                input  logic [5:0] character,
-                output wire [63:0] vdata);
+                input  logic	    charprint,
+                input  logic [5:0]  character,
+                output logic [63:0] vdata);
 
   logic  [63:0] CRAM[39:0];
-
+  logic  [63:0] aux;
 
   // inicializando a memoria com os bitmaps
   initial
     begin
-      $readmemh("charmem.dat",CRAM);
+      $readmemh("charfile_old.dat",CRAM);
     end
-
-    always @(posedge clk)
+  
+    always_ff @(posedge clk)
 	 if(charprint)
       vdata <= CRAM[character];
 endmodule

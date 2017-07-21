@@ -7,8 +7,9 @@
 // and unified memory
 //------------------------------------------------
 
+
 module topmulti (
-  input wire reset,
+	input wire reset,
 	input wire CLOCK_50,	//board clock: 50MHz
 	output wire VGA_HS,		//horizontal sync out
 	output wire VGA_VS,		//vertical sync out
@@ -21,8 +22,7 @@ module topmulti (
 
 	logic [31:0] writedata, adr, readdata;
 	logic [63:0] vdata;
-	logic        memwrite;
-	logic charprint;
+	logic        memwrite, textprint;
 
 	clockdiv cd(
 	.clr(reset),
@@ -33,7 +33,7 @@ module topmulti (
 	vga640x480 vd(
 	.clr(reset),
 	.dclk(CLOCK_25),
-	.vdata(vdata),
+    .vdata(vdata),
 	.hsync(VGA_HS),
 	.vsync(VGA_VS),
 	.red(VGA_R),
@@ -42,12 +42,12 @@ module topmulti (
 	);
 
   // microprocessor (control & datapath)
-  mips mips(CLOCK_25, reset, adr, writedata, memwrite, readdata, charprint);
+  mips mips(CLOCK_25, reset, adr, writedata, memwrite, readdata, textprint);
 
   // memory
   mem mem(CLOCK_25, memwrite, adr, writedata, readdata);
 
-	// video memory
-  charmem charmem(CLOCK_25, charprint, readdata[25:20], vdata);
+  // text-to-video memory
+  textmem textmem(CLOCK_25, textprint, readdata[25-20], vdata);
 
 endmodule

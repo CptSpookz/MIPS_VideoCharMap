@@ -9,7 +9,7 @@ module mips(input  logic        clk, reset,
             output logic [31:0] adr, writedata,
             output logic        memwrite,
             input  logic [31:0] readdata,
-            output  logic charprint);
+            output  logic textprint);
 
   logic        zero, pcen, irwrite, regwrite,
                alusrca, iord, memtoreg, regdst, jal;
@@ -20,7 +20,7 @@ module mips(input  logic        clk, reset,
   controller c(clk, reset, op, funct, zero,
                pcen, memwrite, irwrite, regwrite,
                alusrca, iord, memtoreg, regdst, jal,
-               pcsrc, alusrcb, alucontrol, charprint);
+               pcsrc, alusrcb, alucontrol, textprint);
   datapath dp(clk, reset,
               pcen, irwrite, regwrite,
               alusrca, iord, memtoreg, regdst, jal,
@@ -36,7 +36,7 @@ module controller(input  logic       clk, reset,
                   output logic       alusrca, iord, memtoreg, regdst, jal,
                   output logic [1:0] pcsrc,
                   output logic [2:0] alusrcb, alucontrol,
-                  output logic charprint);
+                  output logic textprint);
 
   logic [1:0] aluop;
   logic       branch, pcwrite, bne;
@@ -45,7 +45,7 @@ module controller(input  logic       clk, reset,
   maindec md(clk, reset, op, funct,
              pcwrite, memwrite, irwrite, regwrite,
              alusrca, branch, iord, memtoreg, regdst,
-             alusrcb, pcsrc, aluop, bne, jal, charprint);
+             alusrcb, pcsrc, aluop, bne, jal, textprint);
   aludec  ad(funct, aluop, alucontrol);
 
   assign pcen = pcwrite | branch & (zero ^ bne);
@@ -59,7 +59,7 @@ module maindec(input  logic       clk, reset,
                output logic [2:0] alusrcb,
                output logic [1:0] pcsrc, aluop,
                output logic       bne, jal,
-               output logic charprint);
+               output logic textprint);
 
   parameter   FETCH   = 5'b00000; // State 0
   parameter   DECODE  = 5'b00001; // State 1
@@ -77,7 +77,7 @@ module maindec(input  logic       clk, reset,
   parameter   ORIEX   = 5'b01101;	// State 13
   parameter   JALEX   = 5'b01110;	// State 14
   parameter   JREX    = 5'b01111;	// State 15
-  parameter   CHAREX  = 5'b10000;	// State 16
+  parameter   TEXTEX  = 5'b10000;	// State 16
 
   parameter   LW      = 6'b100011;	// Opcode for lw
   parameter   SW      = 6'b101011;	// Opcode for sw
@@ -88,7 +88,7 @@ module maindec(input  logic       clk, reset,
   parameter   ORI     = 6'b001101;	// Opcode for ori
   parameter   J       = 6'b000010;	// Opcode for j
   parameter   JAL     = 6'b000011;	// Opcode for jal
-  parameter   CHARP   = 6'b101010;  // Opcode for charprint
+  parameter   TEXTP   = 6'b101010;  // Opcode for textprint
 
   parameter   JR      = 6'b001000; // Funct for jr
 
@@ -117,7 +117,7 @@ module maindec(input  logic       clk, reset,
                  ORI:     nextstate <= ORIEX;
                  J:       nextstate <= JEX;
                  JAL:     nextstate <= JALEX;
-                 CHARP:   nextstate <= CHAREX;
+                 TEXTP:   nextstate <= TEXTEX;
                  default: nextstate <= 6'bx; // should never happen
                endcase
       MEMADR: case(op)
@@ -138,7 +138,7 @@ module maindec(input  logic       clk, reset,
       JEX:     nextstate <= FETCH;
       JALEX:   nextstate <= FETCH;
       JREX:    nextstate <= FETCH;
-      CHAREX:  nextstate <= FETCH;
+      TEXTEX:  nextstate <= FETCH;
       default: nextstate <= 5'bx; // should never happen
     endcase
 
@@ -146,7 +146,7 @@ module maindec(input  logic       clk, reset,
   assign {jal, bne, pcwrite,
           memwrite, irwrite, regwrite,
           alusrca, branch, iord, memtoreg, regdst,
-          alusrcb, pcsrc, aluop, charprint} = controls;
+          alusrcb, pcsrc, aluop, textprint} = controls;
 
   always_comb
     case(state)
@@ -166,7 +166,7 @@ module maindec(input  logic       clk, reset,
       JEX:     controls <= 19'b001_000_00000_000_10_000;
       JALEX:   controls <= 19'b101_001_00000_000_10_000;
       JREX:    controls <= 19'b001_000_00000_000_11_000;
-      CHAREX:  controls <= 19'b000_000_00000_000_00_001;
+      TEXTEX:  controls <= 19'b000_000_00000_000_00_001;
       default: controls <= 19'bxxx_xxx_xxxxx_xxx_xx_xxx; // should never happen
     endcase
 endmodule

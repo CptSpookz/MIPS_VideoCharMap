@@ -7,7 +7,7 @@
 //------------------------------------------------
 
 module mem(input  logic        clk, memwrite,
-           input  logic [31:0] adr, writedata,
+           input  logic [31:0] adr, writedata, 
            output logic [31:0] readdata);
 
   logic  [31:0] RAM[63:0];

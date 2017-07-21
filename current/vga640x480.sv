@@ -1,28 +1,28 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Source: https://www.element14.com/community/thread/23394/l/draw-vga-color-bars-with-fpga-in-verilog
-// Company: 
-// Engineer: 
-// 
-// Create Date:    00:30:38 03/19/2013 
-// Design Name: 
-// Module Name:    vga640x480 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
+// Company:
+// Engineer:
 //
-// Dependencies: 
+// Create Date:    00:30:38 03/19/2013
+// Design Name:
+// Module Name:    vga640x480
+// Project Name:
+// Target Devices:
+// Tool versions:
+// Description:
 //
-// Revision: 
+// Dependencies:
+//
+// Revision:
 // Revision 0.01 - File Created
-// Additional Comments: 
+// Additional Comments:
 //
 //////////////////////////////////////////////////////////////////////////////////
 module vga640x480(
   input wire dclk,      //pixel clock: 25MHz
   input wire clr,      //asynchronous reset
-  input wire [63:0] vdata,   //video data from memory 
+  input logic [63:0] vdata,   //video data from memory
   output wire hsync,    //horizontal sync out
   output wire vsync,    //vertical sync out
   output reg [3:0] red,  //red vga output
@@ -55,9 +55,6 @@ reg [2:0] charh;
 reg [2:0] charv;
 
 wire pixel;
-
-
-// Downsampling to 20x20 pixels per bit 
 
 //upsampling to 64x64
 assign pixel = vdata[((hc-paddingleft)/8) + (((vc-paddingtop)/8)*8)];
@@ -101,7 +98,7 @@ begin
       else
         vc <= 0;
     end
-    
+
   end
 end
 
@@ -124,7 +121,7 @@ begin
     begin
       red = {4{pixel}};
       green = {4{pixel}};
-      blue = {4{pixel}};    
+      blue = {4{pixel}};
     end
       // we're outside active horizontal range so display black
     else

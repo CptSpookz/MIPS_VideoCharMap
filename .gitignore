@@ -2,6 +2,11 @@
 *.rpt
 *.kpt
 *.bpm
+*.dfp
+*.dpi
+*.sci
+*.sig
+*.jdi
 
 *.smsg
 *.qmsg
@@ -18,6 +23,7 @@
 *.summary
 *.done
 *.db_info
+*.hb_info
 *.hier_info
 *.ipinfo
 *.lpc
@@ -28,6 +34,9 @@
 *.ddb
 *.rdb
 *.idb
+*.tdb
+*.ammdb
+*.rcfdb
 
 *.xml
 *.html

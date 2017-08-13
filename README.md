@@ -3,9 +3,9 @@
 **Trabalho final da disciplina Laboratório de Arquitetura e Organização de Computadores 1**
 
 Autores:
-  * Gabriel Alves, 726515
-  * Anderson Montor, 
-  * Alisson Gomes, 
+  * Gabriel Alves
+  * Anderson Montor
+  * Alisson Gomes 
 
 O objetivo deste trabalho é implementar o Charmap em VGA para a arquitetura da MIPS multiciclo na linguagem SystemVerilog, e após terminado o processador será capaz de imprimir caracteres ASCII em vídeo a partir da leitura de uma memória de dados externa, no caso de uma FPGA Altera DE1.
 
